@@ -146,20 +146,35 @@ public class SecurityConfig {
 
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
-        RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
+        // Register a redirect_uri (+ post-logout redirect) for every allowed
+        // frontend origin, for both the student dashboard and the admin
+        // panel. This is driven off app.cors.allowed-origins so that adding
+        // a new frontend deployment only requires updating one env var
+        // (CORS_ALLOWED_ORIGINS), not touching code.
+        List<String> allowedOrigins = Arrays.stream(corsAllowedOrigins.split(","))
+                .map(String::trim)
+                .filter(origin -> !origin.isEmpty())
+                .toList();
+
+        RegisteredClient.Builder clientBuilder = RegisteredClient.withId(UUID.randomUUID().toString())
                 .clientId("acquitance-client")
                 .clientSecret("{noop}secret")
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .authorizationGrantType(AuthorizationGrantType.REFRESH_TOKEN)
                 .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .redirectUri("http://localhost:5173/dashboard")
-                .redirectUri("http://localhost:5173/admin")
-                .postLogoutRedirectUri("http://localhost:5173/")
                 .scope(OidcScopes.OPENID)
                 .scope(OidcScopes.PROFILE)
-                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build())
-                .build();
+                .clientSettings(ClientSettings.builder().requireAuthorizationConsent(false).build());
+
+        for (String origin : allowedOrigins) {
+            clientBuilder
+                    .redirectUri(origin + "/dashboard")
+                    .redirectUri(origin + "/admin")
+                    .postLogoutRedirectUri(origin + "/");
+        }
+
+        RegisteredClient oidcClient = clientBuilder.build();
 
         return new InMemoryRegisteredClientRepository(oidcClient);
     }
