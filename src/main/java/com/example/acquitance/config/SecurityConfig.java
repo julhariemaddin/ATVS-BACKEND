@@ -91,6 +91,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/oauth2/**", "/logout")) 
             .authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/health").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(exceptions -> exceptions

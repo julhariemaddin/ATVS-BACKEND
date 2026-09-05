@@ -20,6 +20,9 @@ COPY --from=build /app/target/*.jar app.jar
 
 EXPOSE 9090
 
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:9090/api/health || exit 1
+
 # No fallback values here - DB_URL, DB_USERNAME, DB_PASSWORD, CLOUDINARY_*,
 # and CORS_ALLOWED_ORIGINS must be supplied by the container runtime
 # (docker run -e / --env-file, docker-compose, or the hosting platform's
