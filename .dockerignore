@@ -1,0 +1,11 @@
+target/
+.env
+.env.*
+!.env.example
+.git
+.gitignore
+.idea/
+*.iml
+.DS_Store
+Dockerfile
+.dockerignore
