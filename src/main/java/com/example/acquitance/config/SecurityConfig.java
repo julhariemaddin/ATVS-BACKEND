@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -40,6 +41,9 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             // Disable CSRF for all API and OAuth endpoints to prevent 403s in SPA
             .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**", "/oauth2/**", "/logout")) 
+            .securityContext(context -> context
+                .securityContextRepository(new HttpSessionSecurityContextRepository())
+            )
             .authorizeHttpRequests((authorize) -> authorize
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/health").permitAll()
